@@ -1,0 +1,5 @@
+{
+	"symbolExt": ".sym",
+	"varsFile": "./include/constants/vars.h",
+	"flagsFile": "./include/constants/flags.h"
+}
