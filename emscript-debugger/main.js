@@ -26,26 +26,17 @@ function createWindow() {
 	win.loadFile('debugger.html');
 	win.on('closed', ()=> {
 		windowList = windowList.filter(x=>x!=win);
-		emulator.cleanupCallbacks(win);
+		emulator.cleanupCallbacks(wid);
 	});
 	win.on('unresponsive', ()=>win.reload());
 	windowList.push(win);
 	win.__window_id__ = wid;
-	win.webContents.__window_id__ = wid;
+	// win.webContents.__window_id__ = wid;
 	// win.webContents.openDevTools();
 	return win;
 }
-function loadSymbolTable() {
-	let config = require('./config.json');
-	return Promise.all([
-		emulator.loadRomSymbolFile(config.symbolFile),
-		emulator.loadRomVarNameFile(config.varsFile),
-		emulator.loadRomFlagNameFile(config.flagsFile),
-	]);
-}
 
-app.on('reloadSymbolTable', loadSymbolTable);
-app.on('ready', x=>loadSymbolTable().then(createWindow));
+app.on('ready', createWindow);
 app.on('window-all-closed', ()=>{
 	emulator.destroy();
 	app.quit();

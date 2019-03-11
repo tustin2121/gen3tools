@@ -1,23 +1,26 @@
-// debugger.js
+//
 
+$(function(){
+	let $tab = $('main > [name=scripting]');
+	
+	for (let i = 0; i < 20; i++) {
+		$tab.find('.scriptContext .stack').append(`<stackframe idx=${i}>00000000</stackframe>`);
+	}
+	$tab.find('#varBin button[name=clearVars]').on('click', ()=>$('#varBin bin').empty());
+	$tab.find('#flagBin button[name=clearFlags]').on('click', ()=>$('#flagBin bin').empty());
+});
 
-const emulator = require('electron').remote.getGlobal('emulator');
-
-let updateLoop = null;
-
-const FLAG_BYTE_COUNT = 300;
-const FLAG_COUNT = FLAG_BYTE_COUNT*8;
-const VAR_COUNT = 256;
-let m_flags = new Array(FLAG_COUNT);
-let m_vars = new Array(VAR_COUNT);
-
-function printSymbolOrAddr(num) {
-	let sym = emulator.lookupSymbol(num);
-	if (sym) return sym;
-	return ('00000000'+num.toString(16)).slice(-8);
-}
-function printAddr(num) {
-	return ('00000000'+num.toString(16)).slice(-8);
+function update_scripting() {
+	emulator.readSymbols(
+		'sScriptContext1Status', 'sScriptContext1', 
+		'sScriptContext2Enabled', 'sScriptContext2',
+		'gMain',
+	).then(scripting_fillInSymbols);
+	
+	let ptr = emulator._resolveSymbol('gSaveBlock1Ptr');
+	emulator
+		.queryEmulator(`/ReadByteRange/*${ptr.addr}+1270/${(300+(256*2)).toString(16)}`, 'data')
+		.then(scripting_fillFromFlagBlock);
 }
 
 function fillInContext($ctx, data) {
@@ -73,7 +76,7 @@ function fillFromMainData(data) {
 	$('.mainContext [name=savedCb]').val(printSymbolOrAddr(data.readUInt32LE(8)));
 }
 
-function fillFromFlagBlock(data) {
+function scripting_fillFromFlagBlock(data) {
 	let flags = data.slice(0, 300);
 	let vars = data.slice(300, 300+(256*2));
 	
@@ -107,10 +110,8 @@ function fillFromFlagBlock(data) {
 	}
 }
 
-function fillFromSaveBlock(data) {}
-
-function fillInContexts(dataList) {
-	// console.log('fillInContexts', dataList);
+function scripting_fillInSymbols(dataList) {
+	// console.log('scripting_fillInSymbols', dataList);
 	for (let data of dataList) {
 		switch (data.name) {
 			case 'sScriptContext1Status': {
@@ -133,9 +134,6 @@ function fillInContexts(dataList) {
 				break;
 			case 'gMain':
 				fillFromMainData(data.data);
-				break;
-			case 'gSaveBlock1Ptr':
-				fillFromSaveBlock(data.data);
 				break;
 		}
 	}
@@ -167,26 +165,3 @@ function addVarChange(varid, prev, curr) {
 	$var.find('.prev').text(prev);
 	$var.addClass('changed');
 }
-
-$(function(){
-	for (let i = 0; i < 20; i++) {
-		$('.scriptContext .stack').append(`<stackframe idx=${i}>00000000</stackframe>`);
-	}
-	
-	$('#varBin button[name=clearVars]').on('click', ()=>$('#varBin bin').empty());
-	$('#flagBin button[name=clearFlags]').on('click', ()=>$('#flagBin bin').empty());
-	
-	window.addEventListener('beforeunload', ()=>{
-		emulator.cleanupCallbacks(__window_id__);
-	});
-	updateLoop = setInterval(()=>{
-		emulator.readSymbols(
-			'sScriptContext1Status', 'sScriptContext1', 
-			'sScriptContext2Enabled', 'sScriptContext2',
-			'gMain',
-		).then(fillInContexts);
-		
-		let ptr = emulator._resolveSymbol('gSaveBlock1Ptr');
-		emulator.queryEmulator(`/ReadByteRange/*${ptr.addr}+1270/${(300+(256*2)).toString(16)}`, 'data').then(fillFromFlagBlock);
-	}, 200);
-});

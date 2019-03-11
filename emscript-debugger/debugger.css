@@ -1,6 +1,45 @@
 /* debugger.css */
+html { width:100vw; height:100vh; }
+#hidden { display: none; }
 body {
+	position: relative;
 	font-family: monospace;
+}
+body > nav {
+	position: absolute;
+	top: 0; left: 0; right: 0; height: 21px;
+	font-family: monospace;
+	background: linear-gradient(to bottom, hsla(0, 0%, 88%, 1) 44%,hsla(0, 0%, 81%, 1) 100%);
+}
+body > nav li {
+	float: left;
+	list-style: none;
+	margin: 3px 0 0 0;
+	padding: 1px 10px 2px;
+	border: 1px solid #b1b1b1;
+	border-radius: 6px 6px 0px 0px;
+	margin-left: -1px;
+	cursor: pointer;
+	background-color: #efefef;
+	background: linear-gradient(to bottom, #cccccc 0%,#bfbfbf 50%,#adadad 51%,#c2c2c2 100%);
+}
+body > nav li.selected {
+	border-bottom-width: 0;
+	padding: 2px 10px 2px;
+	margin-top: 0;
+	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
+}
+
+body > main {
+	display: none;
+	position: absolute;
+	top: 21px; left: 0; right: 0; bottom: 0;
+}
+body > main > .selected {
+	display: block;
+}
+
+body > main > [name=scripting] {
 	display: grid;
 	grid-template: 
 		"main main"
@@ -9,6 +48,8 @@ body {
 		/ 1fr 1fr;
 	grid-gap: 4px;
 }
+
+
 
 .mainContext {
 	grid-area: main;
