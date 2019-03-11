@@ -1,5 +1,6 @@
 #include "global.hpp"
 #include "optparse.hpp"
+#include <cstring>
 
 using namespace std;
 
