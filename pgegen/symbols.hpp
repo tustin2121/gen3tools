@@ -31,7 +31,6 @@ class ExpressionParser {
 private:
 	const char* const m_expr;
 	const int m_exprLength;
-	const std::unordered_map<std::string, uint64_t> *m_symbolMap; //unowned
 	
 	ExpressionToken *m_mainToken;
 	
@@ -41,7 +40,7 @@ private:
 	
 	const char* m_errorState = nullptr;
 public:
-	ExpressionParser(std::string *expr, std::unordered_map<std::string, uint64_t> *map);
+	ExpressionParser(std::string *expr);
 	~ExpressionParser();
 	
 	void parse();
@@ -56,5 +55,5 @@ private:
 };
 
 
-void findSymbolsInExpression(std::string expr, std::unordered_map<std::string, uint64_t> *map);
-std::string resolveExpression(std::string expr, std::unordered_map<std::string, uint64_t> *map);
+void findSymbolsInExpression(std::string expr);
+std::string resolveExpression(std::string expr);

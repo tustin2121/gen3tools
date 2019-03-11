@@ -4,6 +4,7 @@
 #include "global.hpp"
 #include "optparse.hpp"
 #include "symbols.hpp"
+#include "elfread.hpp"
 
 using namespace std;
 
@@ -14,6 +15,7 @@ string *outFilename = nullptr;
 
 vector<pair<string, string>> templateMap;
 unordered_map<string, uint64_t> symbolMap;
+bool gQuiet = false;
 
 void cleanup()
 {
@@ -64,7 +66,7 @@ bool readTemplate()
 		{
 			pos2 = val.find_first_of("}", pos);
 			key = val.substr(pos + 2, pos2 - pos - 2);
-			findSymbolsInExpression(key, &symbolMap);
+			findSymbolsInExpression(key);
 			pos++;
 		}
 	}
@@ -134,7 +136,13 @@ int main(int argc, char *argv[])
 		cleanup();
 		return -1;
 	}
-
+	
+	if (!findSymbols())
+	{
+		cleanup();
+		return -1;
+	}
+	
 	cout << "Template:" << endl;
 	for (const auto &n : templateMap) {
 		cout << n.first << " = " << n.second << endl;

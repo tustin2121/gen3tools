@@ -12,9 +12,9 @@ ROMName=Pokemon HackName (English)
 ItemData=${gItems}
 AttackNames=${gMoveNames + 1}
 TMData=${gTMHMMoves - 5}
-; Use # before a symbol name to look up the size of the symbol
+; Use & after a symbol name to look up the size of the symbol
 ; (Not every symbol has a size.)
-TotalTMsPlusHMs=${#gTMHMMoves / 2}
+TotalTMsPlusHMs=${gTMHMMoves& / 2}
 TotalTMs=50
 
 ```

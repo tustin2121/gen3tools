@@ -29,8 +29,8 @@ inline bool isSymbolChar(char c)
 }
 
 
-ExpressionParser::ExpressionParser(string *expr, unordered_map<string, uint64_t> *map) 
-	: m_expr(expr->c_str()), m_exprLength(expr->length()), m_symbolMap(map)
+ExpressionParser::ExpressionParser(string *expr) 
+	: m_expr(expr->c_str()), m_exprLength(expr->length())
 {
 	m_ptr = m_expr;
 }
@@ -45,11 +45,12 @@ ExpressionParser::~ExpressionParser()
 void ExpressionParser::parse()
 {
 	m_mainToken = parseGroup();
+	//TODO? Rearrange tokens based on order of operations?
 }
 
 long ExpressionParser::resolve()
 {
-	
+	//TODO
 }
 
 const char* ExpressionParser::getErrorState()
@@ -90,8 +91,8 @@ long ExpressionParser::parseInt(const char* start, const char* end, int base)
 long ExpressionParser::resolveSymbol(const char* sym, int len)
 {
 	string str(sym, len);
-	auto entry = m_symbolMap->find(str);
-	if (entry == m_symbolMap->end())
+	auto entry = symbolMap.find(str);
+	if (entry == symbolMap.end())
 	{
 		m_errorState = "Symbol not found!";
 		return 0;
@@ -208,15 +209,26 @@ ExpressionToken* ExpressionParser::parseGroup()
 				m_errorState = "Error parsing base16 constant!";
 				goto error;
 			}
-			if (workingToken->type == Symbol && !isSymbolChar(*m_ptr))
+			if (workingToken->type == Symbol)
 			{
-				m_errorState = "Error parsing symbol!";
-				goto error;
+				if (*m_ptr == '&')
+				{
+					m_ptr++;
+					pushWorkingToken(group);
+					continue; //skip m_ptr++, we did that already
+				}
+				else if (!isSymbolChar(*m_ptr))
+				{
+					m_errorState = "Error parsing symbol!";
+					goto error;
+				}
 			}
 		}	
 	loop:
 		m_ptr++;
 	}
+	pushWorkingToken(group);
+	return group;
 error:
 	delete workingToken;
 	return group;
@@ -226,19 +238,19 @@ error:
 
 
 
-void findSymbolsInExpression(string expr, unordered_map<string, uint64_t> *map) 
+void findSymbolsInExpression(string expr) 
 {
 	smatch match;
 	while (regex_search(expr, match, REGEX_SYMBOL))
 	{
-		map->emplace(match[0], 0);
+		symbolMap.emplace(match[0].str(), 0);
 		expr = match.suffix().str();
 	}
 }
 
-string resolveExpression(string expr, unordered_map<string, uint64_t> *map)
+string resolveExpression(string expr)
 {
-	ExpressionParser parser(&expr, map);
+	ExpressionParser parser(&expr);
 	parser.parse();
 	if (parser.getErrorState())
 	{

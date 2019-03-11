@@ -3,7 +3,7 @@ CXXFLAGS := -std=c++11 -O2
 
 .PHONY: clean
 
-SRCS := optparse.cpp symbols.cpp selftest.cpp pgegen.cpp
+SRCS := optparse.cpp symbols.cpp elfread.cpp selftest.cpp pgegen.cpp
 
 pgegen: $(SRCS)
 	$(CXX) $(CXXFLAGS) $(SRCS) -o $@ $(LDFLAGS)
