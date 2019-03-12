@@ -3,6 +3,7 @@
 #include "global.hpp"
 #include "elfread.hpp"
 #include "elf.h"
+#include <cstring>
 
 using namespace std;
 

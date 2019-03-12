@@ -101,7 +101,7 @@ bool writeTemplate()
 		{
 			pos2 = val.find_first_of("}", pos);
 			expr = val.substr(pos + 2, pos2 - pos - 2);
-			val = resolveExpression(expr, &symbolMap);
+			val = resolveExpression(expr);
 			pos++;
 		}
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 		printHelp();
 		return -1;
 	}
-
+	
 	if (!parseOptions(argc, argv))
 	{
 		printHelp();

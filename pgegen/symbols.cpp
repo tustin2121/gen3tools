@@ -46,6 +46,7 @@ void ExpressionParser::parse()
 {
 	m_mainToken = parseGroup();
 	//TODO? Rearrange tokens based on order of operations?
+	groupMaths(m_mainToken);
 }
 
 long ExpressionParser::resolve()
@@ -56,6 +57,53 @@ long ExpressionParser::resolve()
 const char* ExpressionParser::getErrorState()
 {
 	return m_errorState;
+}
+
+
+void ExpressionParser::groupMaths(ExpressionToken *token)
+{
+	for (int i = 0; i < token->subTokens.size(); i++)
+	{
+		ExpressionToken *sub = token->subTokens[i];
+		if (sub->type == Group)
+		{
+			groupMaths(sub);
+		}
+	}
+	for (int i = 0; i < token->subTokens.size(); i++)
+	{
+		ExpressionToken *sub = token->subTokens[i];
+		if (sub->type == MulOp || sub->type == DivOp)
+		{
+			if (i-1 > 0 && i+1 < token->subTokens.size())
+			{
+				ExpressionToken *a = token->subTokens[i-1];
+				ExpressionToken *b = token->subTokens[i+1];
+				token->subTokens.erase(token->subTokens.begin()+i+1);
+				token->subTokens.erase(token->subTokens.begin()+i-1);
+				i--;
+				sub->subTokens.push_back(a);
+				sub->subTokens.push_back(b);
+			}
+		}
+	}
+	for (int i = 0; i < token->subTokens.size(); i++)
+	{
+		ExpressionToken *sub = token->subTokens[i];
+		if (sub->type == AddOp || sub->type == SubOp)
+		{
+			if (i-1 > 0 && i+1 < token->subTokens.size())
+			{
+				ExpressionToken *a = token->subTokens[i-1];
+				ExpressionToken *b = token->subTokens[i+1];
+				token->subTokens.erase(token->subTokens.begin()+i+1);
+				token->subTokens.erase(token->subTokens.begin()+i-1);
+				i--;
+				sub->subTokens.push_back(a);
+				sub->subTokens.push_back(b);
+			}
+		}
+	}
 }
 
 
@@ -113,6 +161,7 @@ void ExpressionParser::pushWorkingToken(ExpressionToken *group)
 		case Symbol:
 			workingToken->value = resolveSymbol(workingExpr, m_ptr - workingExpr);
 			break;
+			
 	}
 	group->subTokens.push_back(workingToken); 
 	workingToken = nullptr; 
@@ -125,6 +174,7 @@ ExpressionToken* ExpressionParser::parseGroup()
 	
 	while (m_ptr < m_expr + m_exprLength)
 	{
+		if (m_errorState != nullptr) goto error;
 		if (*m_ptr == 0 || *m_ptr == ')')
 		{
 			pushWorkingToken(group);

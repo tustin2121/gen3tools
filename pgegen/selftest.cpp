@@ -33,11 +33,9 @@ if (strncmp(reinterpret_cast<const char*>(str1), reinterpret_cast<const char*>(s
 DEFINE_TEST(ExpressionParser_testBasicReplace)
 {
 	constexpr unsigned long VAL = 0x03002C38;
-	unordered_map<string, uint64_t> map;
 	string expr("gHello");
-	map.emplace("gHello", 0x03002C38);
 	
-	ExpressionParser parser(&expr, &map);
+	ExpressionParser parser(&expr);
 	parser.parse();
 	unsigned long val = parser.resolve();
 	ASSERT_TRUE(val == VAL, "Symbol replace failure!");
@@ -64,6 +62,12 @@ int runSelfTest(void) {
    std::cout << "Starting selftest..." << std::endl;
    int success = 0, total = 0;
    int res = 0;
+   
+   {
+	   symbolMap.emplace("gHello", 0x03002C38);
+	   symbolMap.emplace("gWorld", 0x03025ABC);
+	   symbolMap.emplace("gWorld#", 240);
+   }
 
    RUN_TEST(ExpressionParser_testBasicReplace);
 

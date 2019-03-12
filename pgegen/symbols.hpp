@@ -13,6 +13,10 @@ enum TokenType : unsigned char {
 };
 
 struct ExpressionToken {
+	TokenType type;
+	long value;
+	std::vector<ExpressionToken*> subTokens;
+	
 	ExpressionToken(TokenType t) : type(t) {};
 	~ExpressionToken()
 	{
@@ -21,10 +25,10 @@ struct ExpressionToken {
 			delete val;
 		}
 	}
-	
-	TokenType type;
-	long value;
-	std::vector<ExpressionToken*> subTokens;
+	bool isEmpty() const
+	{
+		return subTokens.size() == 0;
+	}
 };
 
 class ExpressionParser {
@@ -48,6 +52,7 @@ public:
 	const char* getErrorState();
 
 private:
+	void groupMaths(ExpressionToken *token);
 	long parseInt(const char* start, const char* end, int base);
 	long resolveSymbol(const char* sym, int len);
 	void pushWorkingToken(ExpressionToken *group);
