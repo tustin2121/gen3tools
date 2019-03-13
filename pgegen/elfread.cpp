@@ -4,6 +4,7 @@
 #include "elfread.hpp"
 #include "elf.h"
 #include <cstring>
+#include <algorithm>
 
 using namespace std;
 
@@ -19,8 +20,9 @@ bool findSymbols()
 	
 	constexpr int WORKING_NUM = 32; //number of symbols to work on in chunks
 	Elf32_Ehdr elfHeader;
-	Elf32_Shdr *sectionTable;
-	const char *stringTable; 
+	Elf32_Shdr *sectionTable = nullptr;
+   Elf32_Shdr *shstrtab = nullptr, *strtab = nullptr, *symtab = nullptr; //references
+	const char *stringTable = nullptr; 
 	eFile.read(reinterpret_cast<char*>(&elfHeader), sizeof(Elf32_Ehdr));
 	
 	// Check magic number
@@ -52,7 +54,6 @@ bool findSymbols()
 	
 	// Head to the section table now and read the section table into memory
 	sectionTable = new Elf32_Shdr[elfHeader.e_shnum]; //owner
-	Elf32_Shdr *shstrtab, *strtab, *symtab; //references
 	
 	eFile.seekg(elfHeader.e_shoff);
 	eFile.read(reinterpret_cast<char*>(sectionTable), elfHeader.e_shnum * elfHeader.e_shentsize);

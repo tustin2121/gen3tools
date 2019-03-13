@@ -148,11 +148,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="elfread.cpp" />
     <ClCompile Include="optparse.cpp" />
     <ClCompile Include="pgegen.cpp" />
+    <ClCompile Include="selftest.cpp" />
     <ClCompile Include="symbols.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="elf.h" />
+    <ClInclude Include="elfread.hpp" />
     <ClInclude Include="global.hpp" />
     <ClInclude Include="optparse.hpp" />
     <ClInclude Include="symbols.hpp" />

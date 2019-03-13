@@ -37,21 +37,22 @@ ExpressionParser::ExpressionParser(string *expr)
 
 ExpressionParser::~ExpressionParser()
 {
-	delete m_expr;
-	delete m_mainToken;
-	delete workingToken;
+	//delete m_expr;
+	delete m_mainToken; m_mainToken = nullptr;
+	delete workingToken; workingToken = nullptr;
 }
 
 void ExpressionParser::parse()
 {
 	m_mainToken = parseGroup();
+   if (m_errorState) return;
 	//TODO? Rearrange tokens based on order of operations?
 	groupMaths(m_mainToken);
 }
 
-long ExpressionParser::resolve()
+unsigned long ExpressionParser::resolve()
 {
-	//TODO
+	return resolveExpression(m_mainToken);
 }
 
 const char* ExpressionParser::getErrorState()
@@ -59,6 +60,40 @@ const char* ExpressionParser::getErrorState()
 	return m_errorState;
 }
 
+
+unsigned long ExpressionParser::resolveExpression(ExpressionToken *token)
+{
+	switch (token->type)
+	{
+		case Constant10:
+		case Constant16:
+		case Symbol:
+			return token->value;
+		case Group: {
+			long totalValue = 0;
+			for (auto tk : token->subTokens)
+				totalValue += resolveExpression(tk);
+			return totalValue;
+		} break;
+		case AddOp:
+			return resolveExpression(token->subTokens[0]) + resolveExpression(token->subTokens[1]);
+		case SubOp:
+			return resolveExpression(token->subTokens[0]) - resolveExpression(token->subTokens[1]);
+		case MulOp:
+			return resolveExpression(token->subTokens[0]) * resolveExpression(token->subTokens[1]);
+		case DivOp: {
+			auto a = resolveExpression(token->subTokens[0]);
+			auto b = resolveExpression(token->subTokens[1]);
+			if (b == 0)
+			{
+				m_errorState = "Divide by 0 error!";
+				return 0;
+			}
+			return a / b;
+		} break;
+	}
+   return 0;
+}
 
 void ExpressionParser::groupMaths(ExpressionToken *token)
 {
@@ -75,7 +110,7 @@ void ExpressionParser::groupMaths(ExpressionToken *token)
 		ExpressionToken *sub = token->subTokens[i];
 		if (sub->type == MulOp || sub->type == DivOp)
 		{
-			if (i-1 > 0 && i+1 < token->subTokens.size())
+			if (i-1 >= 0 && i+1 < token->subTokens.size())
 			{
 				ExpressionToken *a = token->subTokens[i-1];
 				ExpressionToken *b = token->subTokens[i+1];
@@ -92,7 +127,7 @@ void ExpressionParser::groupMaths(ExpressionToken *token)
 		ExpressionToken *sub = token->subTokens[i];
 		if (sub->type == AddOp || sub->type == SubOp)
 		{
-			if (i-1 > 0 && i+1 < token->subTokens.size())
+			if (i-1 >= 0 && i+1 < token->subTokens.size())
 			{
 				ExpressionToken *a = token->subTokens[i-1];
 				ExpressionToken *b = token->subTokens[i+1];
@@ -107,7 +142,7 @@ void ExpressionParser::groupMaths(ExpressionToken *token)
 }
 
 
-long ExpressionParser::parseInt(const char* start, const char* end, int base)
+unsigned long ExpressionParser::parseInt(const char* start, const char* end, int base)
 {
 	long val = 0;
 	while (start < end)
@@ -136,7 +171,7 @@ long ExpressionParser::parseInt(const char* start, const char* end, int base)
 	return val;
 }
 
-long ExpressionParser::resolveSymbol(const char* sym, int len)
+unsigned long ExpressionParser::resolveSymbol(const char* sym, int len)
 {
 	string str(sym, len);
 	auto entry = symbolMap.find(str);
@@ -188,6 +223,7 @@ ExpressionToken* ExpressionParser::parseGroup()
 		if (*m_ptr == '(')
 		{
 			pushWorkingToken(group);
+         m_ptr++;
 			workingToken = parseGroup();
 			if (m_errorState != nullptr) goto error;
 			group->subTokens.push_back(workingToken);
@@ -203,25 +239,25 @@ ExpressionToken* ExpressionParser::parseGroup()
 		if (*m_ptr == '+')
 		{
 			pushWorkingToken(group);
-			group->subTokens.push_back(new ExpressionToken(AddOp)); m_ptr++;
+			group->subTokens.push_back(new ExpressionToken(AddOp));
 			goto loop;
 		}
 		if (*m_ptr == '-')
 		{
 			pushWorkingToken(group);
-			group->subTokens.push_back(new ExpressionToken(SubOp)); m_ptr++;
+			group->subTokens.push_back(new ExpressionToken(SubOp));
 			goto loop;
 		}
 		if (*m_ptr == '*')
 		{
 			pushWorkingToken(group);
-			group->subTokens.push_back(new ExpressionToken(MulOp)); m_ptr++;
+			group->subTokens.push_back(new ExpressionToken(MulOp));
 			goto loop;
 		}
 		if (*m_ptr == '/')
 		{
 			pushWorkingToken(group);
-			group->subTokens.push_back(new ExpressionToken(DivOp)); m_ptr++;
+			group->subTokens.push_back(new ExpressionToken(DivOp));
 			goto loop;
 		}
 		if (!workingToken)
@@ -231,7 +267,7 @@ ExpressionToken* ExpressionParser::parseGroup()
 			{
 				workingToken = new ExpressionToken(Constant16);
 				workingExpr = m_ptr+2;
-				m_ptr++;
+				m_ptr++; //skip an extra character
 				goto loop;
 			}
 			if (isDigit(*m_ptr))
@@ -280,7 +316,7 @@ ExpressionToken* ExpressionParser::parseGroup()
 	pushWorkingToken(group);
 	return group;
 error:
-	delete workingToken;
+   delete workingToken; workingToken = nullptr;
 	return group;
 }
 

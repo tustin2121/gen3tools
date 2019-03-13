@@ -48,13 +48,14 @@ public:
 	~ExpressionParser();
 	
 	void parse();
-	long resolve();
+   unsigned long resolve();
 	const char* getErrorState();
 
 private:
+   unsigned long resolveExpression(ExpressionToken *token);
 	void groupMaths(ExpressionToken *token);
-	long parseInt(const char* start, const char* end, int base);
-	long resolveSymbol(const char* sym, int len);
+	unsigned long parseInt(const char* start, const char* end, int base);
+   unsigned long resolveSymbol(const char* sym, int len);
 	void pushWorkingToken(ExpressionToken *group);
 	ExpressionToken* parseGroup();
 };

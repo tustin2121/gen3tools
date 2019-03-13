@@ -33,7 +33,8 @@ bool parseOptions(int argc, char* argv[])
 		if (strncmp(argv[i], FOPT_SELFTEST, sizeof(FOPT_SELFTEST)) == 0)
 		{
 			runSelfTest();
-			return false;
+         exit(0);
+         return false;
 		}
 		if (TESTOPTION(TEMPLATE))
 		{
