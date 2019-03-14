@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pgegen.cpp">
+    <ClCompile Include="symgen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="optparse.cpp">
