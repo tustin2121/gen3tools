@@ -8,12 +8,11 @@
 
 using namespace std;
 
-string *gamecode = new string("????");
 string *templateFilename = nullptr;
 string *symFilename = nullptr;
 string *outFilename = nullptr;
 
-vector<pair<string, string>> templateMap;
+vector<string> templateLines;
 unordered_map<string, uint64_t> symbolMap;
 bool gQuiet = false;
 
@@ -21,7 +20,7 @@ void cleanup()
 {
 	delete symFilename;
 	delete templateFilename;
-	templateMap.clear();
+	templateLines.clear();
 	symbolMap.clear();
 }
 
@@ -35,38 +34,20 @@ bool readTemplate()
 		return false;
 	}
 
-	string line, key, val;
+	string line, expr;
 	size_t pos, pos2;
 	bool headerFound = false;
 	while (getline(tFile, line))
 	{
-		if (line.length() == 0) continue; //skip
-		if (line[0] == ';' || line[0] == '#')
-			continue; //comment character, skip
-		if (line[0] == '[')
-		{
-			headerFound = true;
-			continue;
-		}
-		pos = line.find_first_of(";#");
-		if (pos != string::npos) //remove comment
-		{
-			line = line.substr(0, pos);
-		}
-		pos = line.find_first_of("=");
-		if (pos == string::npos) continue; //skip line, no equals...
-
-		key = line.substr(0, pos);
-		val = line.substr(pos + 1);
-		templateMap.push_back(make_pair(key, val));
+		templateLines.push_back(line);
 
 		// Find symbols in the values
 		pos = 0;
-		while ((pos = val.find("${", pos)) != string::npos)
+		while ((pos = line.find("${", pos)) != string::npos)
 		{
-			pos2 = val.find_first_of("}", pos);
-			key = val.substr(pos + 2, pos2 - pos - 2);
-			findSymbolsInExpression(key);
+			pos2 = line.find_first_of("}", pos);
+			expr = line.substr(pos + 2, pos2 - pos - 2);
+			findSymbolsInExpression(expr);
 			pos++;
 		}
 	}
@@ -90,24 +71,21 @@ bool writeTemplate()
 	}
 	ostream out(buf);
 
-	out << "[" << gamecode << "]\n";
-
-	string line, expr, val;
+	string expr;
 	size_t pos, pos2;
-	for (const auto &n : templateMap) {
-		val = n.second;
+	for (auto &line : templateLines) {
 		pos = 0;
-		while ((pos = val.find("${", pos)) != string::npos)
+		while ((pos = line.find("${", pos)) != string::npos)
 		{
-			pos2 = val.find_first_of("}", pos);
-			expr = val.substr(pos + 2, pos2 - pos - 2);
-			val = resolveExpression(expr);
-			pos++;
+			pos2 = line.find_first_of("}", pos);
+			expr = line.substr(pos + 2, pos2 - pos - 2);
+			expr = resolveExpression(expr);
+			line.replace(pos, pos2-pos+1, expr);
+			// pos++;
 		}
 
-		out << n.first << " = " << val << endl;
+		out << line << endl;
 	}
-
 
 	if (oFile.is_open())
 	{
@@ -143,14 +121,20 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	
-	cout << "Template:" << endl;
-	for (const auto &n : templateMap) {
-		cout << n.first << " = " << n.second << endl;
+	if (!writeTemplate())
+	{
+		cleanup();
+		return -1;
 	}
-	cout << "\nLooking for:" << endl;
-	for (const auto &n : symbolMap) {
-		cout << "Symbol " << n.first << endl;
-	}
+	
+	// cout << "Template:" << endl;
+	// for (const auto &n : templateLines) {
+	// 	cout << n.first << " = " << n.second << endl;
+	// }
+	// cout << "\nLooking for:" << endl;
+	// for (const auto &n : symbolMap) {
+	// 	cout << "Symbol " << n.first << " == " << n.second << endl;
+	// }
 
 	cleanup();
 	return 0;

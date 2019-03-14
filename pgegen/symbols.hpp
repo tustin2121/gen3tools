@@ -62,4 +62,4 @@ private:
 
 
 void findSymbolsInExpression(std::string expr);
-std::string resolveExpression(std::string expr);
+std::string resolveExpression(std::string expr, bool outputHex = true);

@@ -2,6 +2,7 @@
 #include "symbols.hpp"
 
 #include <regex>
+#include <sstream>
 
 using namespace std;
 
@@ -196,7 +197,7 @@ void ExpressionParser::pushWorkingToken(ExpressionToken *group)
 		case Symbol:
 			workingToken->value = resolveSymbol(workingExpr, m_ptr - workingExpr);
 			break;
-			
+		default: break; //The rest are not handled here. This is to get rid of compiler warnings.
 	}
 	group->subTokens.push_back(workingToken); 
 	workingToken = nullptr; 
@@ -334,15 +335,23 @@ void findSymbolsInExpression(string expr)
 	}
 }
 
-string resolveExpression(string expr)
+string resolveExpression(string expr, bool outputHex)
 {
+	stringstream output;
 	ExpressionParser parser(&expr);
 	parser.parse();
 	if (parser.getErrorState())
 	{
-		//TODO
+		output << "[Parse Error: " << parser.getErrorState() << "]";
+		return output.str();
 	}
-	
-	string errComment = ";Not yet implemented";
-	return "0";
+	unsigned long val = parser.resolve();
+	if (parser.getErrorState())
+	{
+		output << "[Resolve Error: " << parser.getErrorState() << "]";
+		return output.str();
+	}
+	if (outputHex) output << std::hex;
+	output << val;
+	return output.str();
 }

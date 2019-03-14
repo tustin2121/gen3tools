@@ -21,7 +21,8 @@ bool findSymbols()
 	constexpr int WORKING_NUM = 32; //number of symbols to work on in chunks
 	Elf32_Ehdr elfHeader;
 	Elf32_Shdr *sectionTable = nullptr;
-   Elf32_Shdr *shstrtab = nullptr, *strtab = nullptr, *symtab = nullptr; //references
+	string *sectionTableNames = nullptr;
+	Elf32_Shdr *shstrtab = nullptr, *strtab = nullptr, *symtab = nullptr; //references
 	const char *stringTable = nullptr; 
 	eFile.read(reinterpret_cast<char*>(&elfHeader), sizeof(Elf32_Ehdr));
 	
@@ -54,6 +55,7 @@ bool findSymbols()
 	
 	// Head to the section table now and read the section table into memory
 	sectionTable = new Elf32_Shdr[elfHeader.e_shnum]; //owner
+	sectionTableNames = new string[elfHeader.e_shnum];
 	
 	eFile.seekg(elfHeader.e_shoff);
 	eFile.read(reinterpret_cast<char*>(sectionTable), elfHeader.e_shnum * elfHeader.e_shentsize);
@@ -62,6 +64,11 @@ bool findSymbols()
 	// Look up names for each section now to see if its the section we want
 	for (int i = 0; i < elfHeader.e_shnum; i++)
 	{
+		char secName[64] = {0};
+		eFile.seekg(shstrtab->sh_offset + sectionTable[i].sh_name);
+		eFile.read(secName, sizeof(secName)-1); //ensure there's a null at the end
+		sectionTableNames[i].assign(secName);
+		
 		if (sectionTable[i].sh_type == SHT_SYMTAB && !symtab)
 		{
 			symtab = &sectionTable[i];
@@ -71,10 +78,7 @@ bool findSymbols()
 			// There can be many string tables, so we have to loop up the section name in 
 			// the string table to see if it's the string table we want.
 			// It's just as convoluted as it sounds, don't worry.
-			char secName[10]; //big enough to hold any single string we want to look at here.
-			eFile.seekg(shstrtab->sh_offset + sectionTable[i].sh_name);
-			eFile.read(secName, sizeof(secName));
-			if (strncmp(secName, ".symtab", 8) == 0)
+			if (sectionTableNames[i].compare(".strtab") == 0)
 			{
 				strtab = &sectionTable[i];
 			}
@@ -83,7 +87,7 @@ bool findSymbols()
 	
 	if (!strtab || !symtab)
 	{
-		cerr << "Symbol file has no symbol table!" << endl;
+		cerr << "Symbol file has no symbol or string table!" << endl;
 		goto error;
 	}
 	if (symtab->sh_size == 0 || symtab->sh_offset == 0 || strtab->sh_size == 0 || strtab->sh_offset == 0)
@@ -129,7 +133,7 @@ bool findSymbols()
 				if (entry != symbolMap.end())
 				{
 					symbolMap[symName] = sym->st_value;
-					if (sym->st_value != 0)
+					if (sym->st_size != 0)
 					{
 						symName += "&";
 						symbolMap[symName] = sym->st_size;
@@ -139,17 +143,19 @@ bool findSymbols()
 			}
 			if (!gQuiet && i % (WORKING_NUM*WORKING_NUM) == 0) cerr << ".";
 		}
-		delete workingSymTable;
+		delete[] workingSymTable;
 		if (!gQuiet) cerr << "done" << endl;
 	}
 
-	delete sectionTable;
+	delete[] sectionTable;
+	delete[] sectionTableNames;
 	delete stringTable;
 	eFile.close();
 	return true;
 	
 error:
-	delete sectionTable;
+	delete[] sectionTable;
+	delete[] sectionTableNames;
 	delete stringTable;
 	eFile.close();
 	return false;
