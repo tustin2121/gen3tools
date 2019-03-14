@@ -6,6 +6,14 @@ symgen requires a template file, so that it knows what symbols to look for and p
 
 Expression tags are anything inside `${` and `}`. Expression tags can contain symbol names, constants (in decimal form or `0x` hex form), and basic arithmitic (addition, subtraction, multiplication, division). Expression tags always output in hexidecimal format. (Options for this may be added later)
 
+To build: run `make` or build from the Visual Studio project.
+
+To use:
+```
+symgen -t /path/to/template.file -s /path/to/pokeemerald.elf > outputfile
+```
+
+## Examples
 ```ini
 [BPEE]
 ROMName=Pokemon HackName (English)
