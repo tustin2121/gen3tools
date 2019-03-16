@@ -4,10 +4,14 @@ html { width:100vw; height:100vh; }
 body {
 	position: relative;
 	font-family: monospace;
+	height: 100vh;
+	margin: 0;
 }
 body > nav {
 	position: absolute;
 	top: 0; left: 0; right: 0; height: 21px;
+	padding: 4px 6px 0px;
+	overflow: hidden;
 	font-family: monospace;
 	background: linear-gradient(to bottom, hsla(0, 0%, 88%, 1) 44%,hsla(0, 0%, 81%, 1) 100%);
 }
@@ -31,15 +35,20 @@ body > nav li.selected {
 }
 
 body > main {
-	display: none;
 	position: absolute;
-	top: 21px; left: 0; right: 0; bottom: 0;
+	top: 25px; left: 0; right: 0; bottom: 0;
 }
-body > main > .selected {
+body > main > div {
+	display: none;
+	padding: 8px;
+	background-color: #efefef;
+	height: -webkit-fill-available;
+}
+body > main > div.selected {
 	display: block;
 }
 
-body > main > [name=scripting] {
+body > main > [name=scripting].selected {
 	display: grid;
 	grid-template: 
 		"main main"
@@ -47,6 +56,29 @@ body > main > [name=scripting] {
 		"vbin fbin"
 		/ 1fr 1fr;
 	grid-gap: 4px;
+}
+
+.group {
+	margin: 10px 6px 6px 6px;
+	border: 1px solid #909090;
+	padding: 10px 6px 6px 6px;
+	position: relative;
+}
+.group::before {
+	content: attr(group-name);
+	position: absolute;
+	top: -0.5em; left: 1em;
+	background-color: #efefef;
+	padding: 0px 2px;
+}
+.group p {
+	margin: 6px 0px;
+	display: flex;
+	align-items: center;
+}
+.group input.file {
+	flex-grow: 1;
+	margin-left: 1ch;
 }
 
 

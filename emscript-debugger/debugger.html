@@ -4,7 +4,9 @@
 	<title>EmScript Debugger</title>
 	<script>window.$ = window.jQuery = require('jquery');</script>
 	<script src="debugger_main.js"></script>
+	<script src="debugger_setup.js"></script>
 	<script src="debugger_scripting.js"></script>
+	<script src="debugger_events.js"></script>
 	<link rel="stylesheet" href="debugger.css" />
 	<meta charset="UTF-8">
 </head>
@@ -17,13 +19,12 @@
 	</nav>
 	<main>
 		<div name="setup" class="selected">
-			<div class="group" group-name="Load Pokemon">
+			<div class="group" group-name="Load Symbol Files">
 				<p><label><input type="checkbox" name="fileAutofind" checked />Auto-find other files</label></p>
 				<p>Sym file: <input type="text" readonly name="fileSym" class="file"></input></p>
-				<p>PGE.ini file: <input type="text" readonly name="filePge" class="file"></input></p>
 				<p>flags.h: <input type="text" readonly name="fileFlags" class="file"></input></p>
 				<p>vars.h: <input type="text" readonly name="fileVars" class="file"></input></p>
-				<p><button name="loadFiles">Load Pokemon</button></p>
+				<p><button name="loadFiles">Load Symbols</button></p>
 			</div>
 		</div>
 		<div name="scripting">

@@ -9,7 +9,7 @@ let windowList = [];
 
 const generateId = ()=>Math.floor(Math.random()*Math.pow(36,5)).toString(36);
 
-global.emulator = new EmulatorApi();
+global.emulator = new EmulatorApi(53212);
 
 function createWindow() {
 	let wid = generateId();
@@ -28,7 +28,7 @@ function createWindow() {
 		windowList = windowList.filter(x=>x!=win);
 		emulator.cleanupCallbacks(wid);
 	});
-	win.on('unresponsive', ()=>win.reload());
+	// win.on('unresponsive', ()=>win.reload());
 	windowList.push(win);
 	win.__window_id__ = wid;
 	// win.webContents.__window_id__ = wid;

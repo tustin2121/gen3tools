@@ -1,12 +1,22 @@
 //
 
+function canAccess(file) {
+	const fs = require('fs');
+	try {
+		fs.accessSync(file);
+		return true;
+	} catch (e) {
+		return false;
+	}
+}
+
 $(function(){
 	let $tab = $('main > [name=setup]');
 	
 	$tab.find('.file').on('dblclick', function(){
 		let chooser = $('#fileChooser');
 		chooser.unbind('change').val('').on('change', ()=>{
-			let file = chooser.val();
+			let file = chooser[0].files[0].path; //chooser.val();
 			$(this).val(file);
 			if ($(this).attr('name') === 'fileSym' || $(this).attr('name') === 'filePge') {
 				if (!$tab.find('input[name=fileAutofind]').is(':checked')) return;
@@ -16,13 +26,8 @@ $(function(){
 		chooser.trigger('click');
 	});
 	$tab.find('button[name=loadFiles]').on('click', function(){
-		const fs = require('fs');
-		
 		let symfile = $tab.find('input[name=fileSym]').val();
-		if (!symfile || !fs.accessSync(symfile)) {
-			symfile = $tab.find('input[name=filePge]').val();
-		}
-		if (!symfile || !fs.accessSync(symfile)) { 
+		if (!symfile || !canAccess(symfile)) {
 			alert("Must have a valid sym or pge.ini file specified.");
 			return; 
 		}
