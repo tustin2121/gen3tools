@@ -57,6 +57,14 @@ body > main > [name=scripting].selected {
 		/ 1fr 1fr;
 	grid-gap: 4px;
 }
+body > main > [name=palettes].selected {
+	display: grid;
+	grid-template: 
+		"main main"
+		"swh1 swh2"
+		/ 1fr 1fr;
+	grid-gap: 4px;
+}
 
 .group {
 	margin: 10px 6px 6px 6px;
@@ -255,4 +263,39 @@ body > main > [name=scripting].selected {
 }
 .changeBin .oftList {
 	/* border-bottom: 1px solid gray; */
+}
+
+
+.controls {
+	grid-area: main;
+}
+#swatch1 {
+	grid-area: swh1;
+	background-color: #ceffce;
+}
+#swatch1::before {
+	content: 'Background Palettes';
+}
+#swatch2 {
+	grid-area: swh2;
+	background-color: #ced2ff;
+}
+#swatch2::before {
+	content: 'Object Palettes';
+}
+.swatches {
+	padding: 8px;
+	border: 1px solid gray;
+	position: relative;
+}
+.swatches::before {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+}
+.swatches swatch {
+	grid-template: repeat(16, 16px);
+}
+.swatches swatch span {
+	background-color: attr(color);
 }

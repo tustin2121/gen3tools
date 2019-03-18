@@ -28,6 +28,7 @@ function update() {
 		case "setup": break;
 		case "scripting": update_scripting(); break;
 		case "events": update_events(); break;
+		case "palettes": update_palettes(); break;
 	}
 }
 
