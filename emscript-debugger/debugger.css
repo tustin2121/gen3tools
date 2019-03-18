@@ -294,8 +294,23 @@ body > main > [name=palettes].selected {
     right: 8px;
 }
 .swatches swatch {
-	grid-template: repeat(16, 16px);
+	display: inline-grid;
+	position: relative;
+	grid-template: 16px 16px / 16px repeat(16, 16px);
+	grid-gap: 1px 0px;
+	margin: 1px;
+	border: 1px solid black;
+	padding: 2px 2px 2px 2rem;
+}
+.swatches swatch::before {
+    content: attr(name);
+    position: absolute;
+    font-size: 1rem;
+    top: 10px;
+    left: 6px;
 }
 .swatches swatch span {
-	background-color: attr(color);
+	display: inline-block;
+	background-color: white;
+	text-align: center;
 }
