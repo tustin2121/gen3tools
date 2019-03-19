@@ -8,6 +8,13 @@ npm install
 npm start
 ```
 
+You will need to load symbols from pokeemerald in order for the debugger to function. A sym file can be created with the following command line
+```console
+arm-none-eabi-nm -SBgn pokeemerald.elf > pokeemerald.sym
+```
+
+In the future, the debugger will read symbols directly from the elf file.
+
 # Emerald Scripting Explaination
 
 Pokemon Emerald (and gen 3 in general) makes use of a scripting engine as well as native code.
