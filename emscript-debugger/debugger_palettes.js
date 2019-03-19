@@ -29,7 +29,13 @@ $(function(){
 			case 'gray2': TintPalette_GrayScale2(start, end); break;
 			case 'sepia': TintPalette_SepiaTone(start, end); break;
 			case 'custom': {
-				// TintPalette_CustomTone(start, end, r, g, b); 
+				let rgb = $tab.find('input[name=paletteTint]').val();
+				TintPalette_CustomTone(start, end, rgb); 
+			} break;
+			case 'blend': {
+				let coeff = $tab.find('input[name=paletteCoeff]').val();
+				let rgb = $tab.find('input[name=paletteTint]').val();
+				BlendPalette(start, end, coeff, rgb); 
 			} break;
 		}
 		applyPaletteChanges();
@@ -177,8 +183,12 @@ function TintPalette_SepiaTone(start, end)
 	}
 }
 
-function TintPalette_CustomTone(start, end, rTone, gTone, bTone)
+function TintPalette_CustomTone(start, end, toneHex)
 {
+	let rTone = Number.parseInt(toneHex.slice(1,3), 16);
+	let gTone = Number.parseInt(toneHex.slice(3,5), 16);
+	let bTone = Number.parseInt(toneHex.slice(5,7), 16);
+	
 	let r, g, b;
 	let gray;
 	for (let i = start; i <= end; i++)
@@ -197,6 +207,26 @@ function TintPalette_CustomTone(start, end, rTone, gTone, bTone)
 		if (b > 31) b = 31;
 		
 		gPlttBufferFaded[i] = (b << 10) | (g << 5) | (r << 0);
+		gPaletteUpdated[Math.floor(i/16)] = true;
+	}
+}
+
+function BlendPalette(start, end, coeff, blendHex)
+{
+	let r2 = Number.parseInt(blendHex.slice(1,3), 16);
+	let g2 = Number.parseInt(blendHex.slice(3,5), 16);
+	let b2 = Number.parseInt(blendHex.slice(5,7), 16);
+	
+	let r1, g1, b1;
+	for (let i = start; i <= end; i++)
+	{
+		r1 = (gPlttBufferUnfaded[i] >>  0) & 0x1F;
+		g1 = (gPlttBufferUnfaded[i] >>  5) & 0x1F;
+		b1 = (gPlttBufferUnfaded[i] >> 10) & 0x1F;
+		r1 = r1 + (((r2 - r1) * coeff) >> 4);
+		g1 = g1 + (((g2 - g1) * coeff) >> 4);
+		b1 = b1 + (((b2 - b1) * coeff) >> 4);
+		gPlttBufferFaded[i] = (b1 << 10) | (g1 << 5) | (r1 << 0);
 		gPaletteUpdated[Math.floor(i/16)] = true;
 	}
 }
