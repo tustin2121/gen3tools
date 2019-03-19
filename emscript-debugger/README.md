@@ -1,6 +1,6 @@
 # EmScript Debugger
 
-This is a program that allows the user to view the state of the Pokemon Emerald Scripting language as it runs in the emulator. This debugger requires the [BizHawk fork created by TwitchPlaysPokemon]() that has an http API in order to read the state of the emualtor.
+This is a program that allows the user to view the state of the Pokemon Emerald Scripting language as it runs in the emulator. This debugger requires the [BizHawk fork created by TwitchPlaysPokemon](https://github.com/TwitchPlaysPokemon/tpp-BizHawk2) that has an http API in order to read the state of the emualtor.
 
 To run:
 ```console
