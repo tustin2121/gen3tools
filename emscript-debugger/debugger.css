@@ -60,9 +60,8 @@ body > main > [name=scripting].selected {
 body > main > [name=palettes].selected {
 	display: grid;
 	grid-template: 
-		"main main"
-		"swh1 swh2"
-		/ 1fr 1fr;
+		"swh1 swh2 main"
+		/ 330px 330px 1fr;
 	grid-gap: 4px;
 }
 
@@ -287,6 +286,7 @@ body > main > [name=palettes].selected {
 	padding: 8px;
 	border: 1px solid gray;
 	position: relative;
+	padding-top: 1.2rem;
 }
 .swatches::before {
     position: absolute;
@@ -295,22 +295,27 @@ body > main > [name=palettes].selected {
 }
 .swatches swatch {
 	display: inline-grid;
-	position: relative;
-	grid-template: 16px 16px / 16px repeat(16, 16px);
+	grid-template: 
+		"num su pal" 16px
+		"num sf pal" 16px
+		/ 2rem 16px calc(16px * 16);
 	grid-gap: 1px 0px;
+	grid-auto-flow: column;
 	margin: 1px;
 	border: 1px solid black;
-	padding: 2px 2px 2px 2rem;
+	padding: 2px;
 }
 .swatches swatch::before {
     content: attr(name);
-    position: absolute;
-    font-size: 1rem;
-    top: 10px;
-    left: 6px;
+	font-size: 1rem;
+	place-self: center;
+	grid-area: num;
 }
 .swatches swatch span {
 	display: inline-block;
 	background-color: white;
 	text-align: center;
+}
+.swatches swatch canvas {
+	grid-area: pal;
 }

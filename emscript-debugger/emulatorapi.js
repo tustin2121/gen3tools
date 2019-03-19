@@ -170,12 +170,8 @@ class EmulatorApi {
 		return false;
 	}
 	
-	getVarName(id) {
-		if (!this.varNameTable) return `VAR_${id}`;
-		return this.varNameTable[id]; 
-	}
+	getVarName(id) { return this.varNameTable[id]; }
 	getFlagName(id) {
-		if (!this.flagNameTable) return `FLAG_${id}`;
 		if (id > 0x500 && id <= 0x500+0x356) {
 			return `TRAINER_FLAG_${(id-0x500).toString(16)}`;
 		}
@@ -204,6 +200,29 @@ class EmulatorApi {
 						}
 					});
 				}).on('error', reject);
+			} catch (e) {
+				reject(e);
+			}
+		});
+	}
+	
+	postToEmulator(path, body) {
+		return new Promise((resolve, reject)=>{
+			try {
+				const opts = {
+					method: 'POST',
+				};
+				const req = http.request(`${EMULATOR_URL}${path}`, opts, (res)=>{
+					let data = '';
+					res.on('data', (c)=>data+=c);
+					res.on('end', ()=>{
+						if (data == 'ok') resolve(true); // Command response
+						else if (res.statusCode === 200) resolve(data);
+						else reject(data);
+					});
+				}).on('error', reject);
+				req.write(body);
+				req.end();
 			} catch (e) {
 				reject(e);
 			}

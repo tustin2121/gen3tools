@@ -87,7 +87,18 @@
 			
 		</div>
 		<div name="palettes">
-			<div class="controls"></div>
+			<div class="controls">
+				<div class="group" group-name="Tint Palette Tests">
+					<p>Start at pallete #<input type="number" name="paletteStart" value="0" max="32" min="0"></p>
+					<p>End at pallete #<input type="number" name="paletteEnd" value="32" max="32" min="0"></p>
+					<p><input type="radio" name="paletteType" value="gray1"> TintPalette_GrayScale</p>
+					<p><input type="radio" name="paletteType" value="gray2"> TintPalette_GrayScale2</p>
+					<p><input type="radio" name="paletteType" value="sepia"> TintPalette_SepiaTone</p>
+					<p><input type="radio" name="paletteType" value="custom"> TintPalette_CustomTone</p>
+					<p><button name="applyColors">Apply</button></p>
+				</div>
+				
+			</div>
 			<div class="swatches" id="swatch1"></div>
 			<div class="swatches" id="swatch2"></div>
 		</div>
