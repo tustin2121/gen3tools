@@ -1,0 +1,47 @@
+/* editor.css */
+html { width:100vw; height:100vh; }
+#hidden { display: none; }
+body {
+	position: relative;
+	font-family: monospace;
+	height: 100vh;
+	margin: 0;
+	font-size: 16px;
+}
+body > main {
+	position: absolute;
+	top: 0; left: 0; right: 0; bottom: 0;
+	display: grid;
+	grid: 
+		"main pals" 16rem
+		"main tile" 1fr
+		/ 1fr 18rem;
+}
+
+#tilemap {
+	grid-area: main;
+	background-color: #800000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+#palette {
+	grid-area: pals;
+	border-left: 1px solid #494949;
+	background-color: #262626;
+}
+#palette swatch {
+	display: block;
+	font-family: monospace;
+	border-bottom: #494949 1px solid;
+}
+#palette swatch::before {
+	content: attr(name);
+	width: 2rem;
+}
+#tiles {
+	grid-area: tile;
+	border-top: 1px solid #494949;
+	border-left: 1px solid #494949;
+	background-color: #262626;
+}
