@@ -8,6 +8,7 @@ $(function(){
 	}
 	$tab.find('#varBin button[name=clearVars]').on('click', ()=>$('#varBin bin').empty());
 	$tab.find('#flagBin button[name=clearFlags]').on('click', ()=>$('#flagBin bin').empty());
+	$tab.find('#flagBin .tmpList input').each((idx, el)=>el.indeterminate = true);
 });
 
 function update_scripting() {
@@ -87,7 +88,9 @@ function scripting_fillFromFlagBlock(data) {
 			let idx = (i*8) + j;
 			let val = !!(b & 1<<j);
 			if (m_flags[idx] !== val) {
-				if (m_flags[idx] !== undefined) {
+				if (idx <= 0x1F) {
+					$(`#flagBin [fid=${idx.toString(16)}] input`).prop('checked', val)[0].indeterminate = false;
+				} else if (m_flags[idx] !== undefined) {
 					addFlagChange(idx, m_flags[idx], val);
 				}
 				m_flags[idx] = val;
@@ -99,7 +102,7 @@ function scripting_fillFromFlagBlock(data) {
 		if (m_vars[i] !== val) {
 			// The following variables (related to step counts) change so often that 
 			// we might as well keep them separate and NOT flash a change color
-			if (i == 0x2a || i == 0x2b) {
+			if (i <= 0xF || i == 0x2a || i == 0x2b) {
 				$(`#varBin [vid=${i.toString(16)}] .curr`).text(val);
 			}
 			else if (m_vars[i] !== undefined) {

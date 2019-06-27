@@ -40,6 +40,7 @@ $(function(){
 		}
 		applyPaletteChanges();
 	});
+	BuildGammaShiftTables();
 });
 
 function convertToRGB(u16Val) {
@@ -116,7 +117,133 @@ function applyPaletteChanges() {
 ///////////////////////////////////////////////////////////////////////////////
 // Copied from the ROM source:
 
+const GAMMA_NONE = 0;
+const GAMMA_NORMAL = 1;
+const GAMMA_ALT = 2;
+
+let altGammaSpritePalIndex = 0;
+const gammaShifts = [];
+const altGammaShifts = [];
+for (let i = 0; i < 19; i++) {
+	gammaShifts[i] = new Array(32);
+	altGammaShifts[i] = new Array(32);
+}
+
+let sPaletteGammaTypes = [
+	// background palettes
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NONE,
+    GAMMA_NONE,
+    // sprite palettes
+    GAMMA_ALT,
+    GAMMA_NORMAL,
+    GAMMA_ALT,
+    GAMMA_ALT,
+    GAMMA_ALT,
+    GAMMA_ALT,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_ALT,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+    GAMMA_NORMAL,
+]
+
+// Builds two tables that contain gamma shifts for palette colors.
+// It's unclear why the two tables aren't declared as const arrays, since
+// this function always builds the same two tables.
+function BuildGammaShiftTables()
+{
+    let v0;
+    let gammaTable;
+    let v2;
+    let v4;
+    let v5;
+    let gammaIndex;
+    let v9;
+    let v10;
+    let v11;
+    let dunno;
+
+    // sPaletteGammaTypes = sBasePaletteGammaTypes;
+    for (v0 = 0; v0 <= 1; v0++)
+    {
+        if (v0 == 0)
+            gammaTable = gammaShifts;
+        else
+            gammaTable = altGammaShifts;
+
+        for (v2 = 0; v2 < 32; v2++)
+        {
+            v4 = v2 << 8;
+            if (v0 == 0)
+                v5 = (v2 << 8) / 16;
+            else
+                v5 = 0;
+            for (gammaIndex = 0; gammaIndex <= 2; gammaIndex++)
+            {
+                v4 = (v4 - v5);
+                gammaTable[gammaIndex][v2] = v4 >> 8;
+            }
+            v9 = v4;
+            v10 = 0x1f00 - v4;
+            if ((0x1f00 - v4) < 0)
+            {
+                v10 += 0xf;
+            }
+            v11 = v10 >> 4;
+            if (v2 < 12)
+            {
+                for (; gammaIndex < 19; gammaIndex++)
+                {
+                    v4 += v11;
+                    dunno = v4 - v9;
+                    if (dunno > 0)
+                        v4 -= (dunno + (dunno >> 15)) >> 1;
+                    gammaTable[gammaIndex][v2] = v4 >> 8;
+                    if (gammaTable[gammaIndex][v2] > 0x1f)
+                        gammaTable[gammaIndex][v2] = 0x1f;
+                }
+            }
+            else
+            {
+                for (; gammaIndex < 19; gammaIndex++)
+                {
+                    v4 += v11;
+                    gammaTable[gammaIndex][v2] = v4 >> 8;
+                    if (gammaTable[gammaIndex][v2] > 0x1f)
+                        gammaTable[gammaIndex][v2] = 0x1f;
+                }
+            }
+        }
+	}
+	console.log(`BuildGammaShiftTables: `, gammaShifts, altGammaShifts);
+}
+
+
 function Q_8_8(n) { return (n * 256) & 0xFFFF; }
+function CpuFastCopy(src, srcOff, dst, destOff, size) {
+	for (let i = 0; i < size; i++) {
+		dst[destOff] = src[srcOff+i];
+	}
+}
 
 function TintPalette_GrayScale(start, end)
 {
@@ -229,4 +356,89 @@ function BlendPalette(start, end, coeff, blendHex)
 		gPlttBufferFaded[i] = (b1 << 10) | (g1 << 5) | (r1 << 0);
 		gPaletteUpdated[Math.floor(i/16)] = true;
 	}
+}
+
+function ApplyGammaShift(start, numPalettes, gammaIndex)
+{
+    let curPalIndex;
+    let palOffset;
+    let gammaTable;
+    let i;
+
+    if (gammaIndex > 0)
+    {
+        gammaIndex--;
+        palOffset = start * 16;
+        numPalettes += start;
+        curPalIndex = start;
+
+        // Loop through the speficied palette range and apply necessary gamma shifts to the colors.
+        while (curPalIndex < numPalettes)
+        {
+            if (sPaletteGammaTypes[curPalIndex] == GAMMA_NONE)
+            {
+                // No palette change.
+                CpuFastCopy(gPlttBufferUnfaded, palOffset, gPlttBufferFaded, palOffset, 16);
+                palOffset += 16;
+            }
+            else
+            {
+                let r, g, b;
+
+                if (sPaletteGammaTypes[curPalIndex] == GAMMA_ALT || curPalIndex - 16 == altGammaSpritePalIndex)
+                    gammaTable = altGammaShifts[gammaIndex];
+                else
+                    gammaTable = gammaShifts[gammaIndex];
+
+                for (i = 0; i < 16; i++)
+                {
+                    // Apply gamma shift to the original color.
+                    let baseColor = { 
+						r: (gPlttBufferUnfaded[palOffset] >>  0) & 0x1F,
+						g: (gPlttBufferUnfaded[palOffset] >>  5) & 0x1F,
+						b: (gPlttBufferUnfaded[palOffset] >> 10) & 0x1F,
+					};
+                    r = gammaTable[baseColor.r];
+                    g = gammaTable[baseColor.g];
+                    b = gammaTable[baseColor.b];
+                    gPlttBufferFaded[palOffset++] = (b << 10) | (g << 5) | r;
+                }
+            }
+
+            curPalIndex++;
+        }
+    }
+    else if (gammaIndex < 0)
+    {
+        // // A negative gammIndex value means that the blending will come from the special Drought weather's palette tables.
+        // gammaIndex = -gammaIndex - 1;
+        // palOffset = start * 16;
+        // numPalettes += start;
+        // curPalIndex = start;
+
+        // while (curPalIndex < numPalettes)
+        // {
+        //     if (sPaletteGammaTypes[curPalIndex] == GAMMA_NONE)
+        //     {
+        //         // No palette change.
+        //         CpuFastCopy(gPlttBufferUnfaded, palOffset, gPlttBufferFaded, palOffset, 16);
+        //         palOffset += 16;
+        //     }
+        //     else
+        //     {
+        //         for (i = 0; i < 16; i++)
+        //         {
+        //             gPlttBufferFaded[palOffset] = sDroughtWeatherColors[gammaIndex][DROUGHT_COLOR_INDEX(gPlttBufferUnfaded[palOffset])];
+        //             palOffset++;
+        //         }
+        //     }
+
+        //     curPalIndex++;
+        // }
+    }
+    else
+    {
+        // No palette blending.
+        CpuFastCopy(gPlttBufferUnfaded, start * 16, gPlttBufferFaded, start * 16, numPalettes * 16);
+    }
 }
