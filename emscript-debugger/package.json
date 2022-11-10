@@ -9,7 +9,7 @@
   "author": "tustin2121",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^4.0.5"
+    "electron": "^18.3.7"
   },
   "dependencies": {
     "jquery": "^3.3.1"
